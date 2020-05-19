@@ -3,6 +3,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
+import dash_bootstrap_components as dbc
 
 dataset = pd.read_excel("covid_aggregated_filtered_2.xls")
 
@@ -63,7 +64,7 @@ for i in countries:
     colors['{}'.format(i)]=['{}'.format(colors_2[c])]
     c=c+1
 
-def create_animation(x_axis_column, y_axis_column, size_column):
+def create_animation(x_axis_column, y_axis_column, size_column, country_name=None):
     
     # make figure
     fig_dict = {
@@ -73,8 +74,8 @@ def create_animation(x_axis_column, y_axis_column, size_column):
     }
 
     # fill in most of layout
-    fig_dict["layout"]["yaxis"] = {"range": [-5, max(dataset[x_axis_column])+100], "title": "{}".format(x_axis_column)}
-    fig_dict["layout"]["xaxis"] = {"range": [0, max(dataset[y_axis_column])+100], "title": "{}".format(y_axis_column)}
+    fig_dict["layout"]["yaxis"] = {"range": [-5, max(dataset[y_axis_column])+100], "title": "{}".format(y_axis_column)}
+    fig_dict["layout"]["xaxis"] = {"range": [0, max(dataset[x_axis_column])+100], "title": "{}".format(x_axis_column)}
     fig_dict["layout"]["hovermode"] = "closest"
     fig_dict["layout"]["updatemenus"] = [
         {
@@ -131,8 +132,8 @@ def create_animation(x_axis_column, y_axis_column, size_column):
             dataset_by_year["index"] == country]
 
         data_dict = {
-            "y": dataset_by_year_and_cont[x_axis_column],
-            "x": dataset_by_year_and_cont[y_axis_column],
+            "x": dataset_by_year_and_cont[x_axis_column],
+            "y": dataset_by_year_and_cont[y_axis_column],
             "mode": "markers",
             "text": list(dataset_by_year_and_cont["index"]),
             "marker": {
@@ -149,19 +150,26 @@ def create_animation(x_axis_column, y_axis_column, size_column):
     for year in years:
         frame = {"data": [], "name": str(year)}
         for country in countries:
+            if country_name is not None:
+                if country == country_name:
+                    specific_opacity = 1
+                else:
+                    specific_opacity = 0.1
+            else:
+                specific_opacity = 0.5
             dataset_by_year = dataset[dataset["record_date"] == year]
             dataset_by_year_and_cont = dataset_by_year[
                 dataset_by_year["index"] == country]
 
             data_dict = {
-                "y": dataset_by_year_and_cont[x_axis_column],
-                "x": dataset_by_year_and_cont[y_axis_column],
+                "x": dataset_by_year_and_cont[x_axis_column],
+                "y": dataset_by_year_and_cont[y_axis_column],
                 "mode": "markers+text",
                 "text": list(dataset_by_year_and_cont["index"]),
                 "textposition": "top center",
                 "marker": {
                     "sizemode": "area",
-                    "opacity":0.5,
+                    "opacity": specific_opacity,
                     #"sizeref": 200,
                     "size": list(dataset_by_year_and_cont[size_column]),
                     "line":dict(
@@ -170,7 +178,7 @@ def create_animation(x_axis_column, y_axis_column, size_column):
                     )
                 },
                 "name": country,
-                "showlegend": True,            
+                #"showlegend": True,            
             }
 
 
@@ -197,16 +205,16 @@ def create_animation(x_axis_column, y_axis_column, size_column):
     fig.update_layout(template="plotly_white",
         autosize=False,
         width=1050,
-        height=800,
+        height=700,
         #paper_bgcolor="LightSteelBlue",
-        title="Covid-19 - Deaths vs. Population density - US & top 10 countries"
+        #title="Covid-19 - Deaths vs. Population density - US & top 10 countries"
     )
 
     return fig
 
 #Dash
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', "https://codepen.io/chriddyp/pen/brPBPO.css"]
+external_stylesheets = [dbc.themes.BOOTSTRAP, 'https://codepen.io/chriddyp/pen/bWLwgP.css', "https://codepen.io/chriddyp/pen/brPBPO.css"]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -217,14 +225,14 @@ server = app.server
 #available_indicators = df['Indicator Name'].unique()
 available_x_axis = [
     'Confirmed',
+    'Confirmed/million',
     'Recovered',
-    'Confirmed/million'
 ]
 
 available_y_axis = [
     'Deaths',
+    'Deaths/million',
     'Recovered',
-    'Deaths/million'
 ]
 
 available_z_axis = [
@@ -232,9 +240,35 @@ available_z_axis = [
  'Population density /sq mi'
 ]
 
-app.layout = html.Div([
+app.layout = html.Div(
+    [
+        html.Div([
+    
+            html.H1("Covid-19 Data Trends", style={'display': 'inline-block', 'margin':5}),
+            
+            dbc.Button(
+                "About", id="alert-toggle-fade", className="mr-1",
+                style={'display': 'inline-block', 'float': 'right', 'margin': 5}),
+            html.A(html.Button("LinkedIn", id="contact-me",
+                       style={'display': 'inline-block', 'float': 'right', 'margin': 5, 
+                              'background-color': '#1E90FF', 'color':'white'}),
+                       href='https://www.linkedin.com/in/vishal-sh/'
+                   ),
+            dbc.Alert(
+                "Coronavirus turned the world upside down, caught nations off-guard. Our response has been difficult & inconsistent, hampered by a lack of data. As a data scientist I wanted to do my bit on this war on Covid-19, sharing insights and trends.",
+                id="alert-fade",
+                dismissable=True,
+                is_open=False,
+            ),
+            ], style={
+            'borderBottom': 'thin lightgrey solid',
+            'backgroundColor': 'rgb(250, 250, 250)'
+        }
+        ),
+        
     html.Div([
 
+        
         html.Div([
             html.Label(["X-axis"]),
             dcc.Dropdown(
@@ -244,7 +278,7 @@ app.layout = html.Div([
             ),
 
         ],
-        style={'width': '20%', 'display': 'inline-block'}),
+        style={'width': '15%', 'display': 'inline-block', 'margin': 5}),
 
         html.Div([
             html.Label(["Y-axis"]),
@@ -253,7 +287,7 @@ app.layout = html.Div([
                 options=[{'label': i, 'value': i} for i in available_y_axis],
                 value='Deaths/million'
             ),
-        ], style={'width': '20%', 'display': 'inline-block'}),
+        ], style={'width': '15%', 'display': 'inline-block', 'margin': 5}),
         
         html.Div([
             html.Label(["Bubble size"]),
@@ -262,7 +296,16 @@ app.layout = html.Div([
                 options=[{'label': i, 'value': i} for i in available_z_axis],
                 value='Population(m)'
             ),
-        ], style={'width': '20%', 'display': 'inline-block'})
+        ], style={'width': '15%', 'display': 'inline-block', 'margin': 5}),
+        
+        html.Div([
+            html.Label(["Highlight country"]),
+            dcc.Dropdown(
+                id='country-selection', #'crossfilter-xaxis-column',
+                options=[{'label': i, 'value': i} for i in countries],
+                placeholder='All',
+            ),
+        ], style={'width': '15%', 'display': 'inline-block', 'margin': 5})
     ], style={
         'borderBottom': 'thin lightgrey solid',
         'backgroundColor': 'rgb(250, 250, 250)',
@@ -289,11 +332,24 @@ app.layout = html.Div([
     dash.dependencies.Output('bubble-animation', 'figure'),
     [dash.dependencies.Input('x-axis-selection', 'value'),
      dash.dependencies.Input('y-axis-selection', 'value'),
-     dash.dependencies.Input('z-axis-selection', 'value')])
-def update_graph(xaxis_column_name, yaxis_column_name, zaxis_column_name):
-    created_fig = create_animation(xaxis_column_name, yaxis_column_name, zaxis_column_name)
+     dash.dependencies.Input('z-axis-selection', 'value'),
+     dash.dependencies.Input('country-selection', 'value'),
+     ])
+def update_graph(xaxis_column_name, yaxis_column_name, zaxis_column_name, country_name):
+    created_fig = create_animation(xaxis_column_name, yaxis_column_name, zaxis_column_name, country_name)
 
     return created_fig
+
+@app.callback(
+    dash.dependencies.Output("alert-fade", "is_open"),
+    [dash.dependencies.Input("alert-toggle-fade", "n_clicks")],
+    [dash.dependencies.State("alert-fade", "is_open")],
+)
+def toggle_alert(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
 
 if __name__ == '__main__':
     app.run_server(debug=False)
