@@ -26,8 +26,8 @@ dataset=dataset[['index',
  'Population(m)',
  'Population density /sq mi']].copy()
 
-dataset['Confirmed/million']=dataset['Confirmed']/dataset['Population(m)']
-dataset['Deaths/million']=dataset['Deaths']/dataset['Population(m)']
+dataset['Confirmed / million']=dataset['Confirmed']/dataset['Population(m)']
+dataset['Deaths / million']=dataset['Deaths']/dataset['Population(m)']
 
 #Function
 years = dataset['record_date'].unique()
@@ -81,8 +81,8 @@ def create_animation(x_axis_column, y_axis_column, size_column, country_name=Non
         {
             "buttons": [
                 {
-                    "args": [None, {"frame": {"duration": 500, "redraw": False},
-                                    "fromcurrent": True, "transition": {"duration": 300,
+                    "args": [None, {"frame": {"duration": 250, "redraw": False},
+                                    "fromcurrent": True, "transition": {"duration": 30,
                                                                         "easing": "quadratic-in-out"}}],
                     "label": "Play",
                     "method": "animate"
@@ -107,7 +107,7 @@ def create_animation(x_axis_column, y_axis_column, size_column, country_name=Non
     ]
 
     sliders_dict = {
-        "active": 38,
+        "active": 39,
         "yanchor": "top",
         "xanchor": "left",
         "currentvalue": {
@@ -116,7 +116,7 @@ def create_animation(x_axis_column, y_axis_column, size_column, country_name=Non
             "visible": True,
             "xanchor": "right"
         },
-        "transition": {"duration": 300, "easing": "cubic-in-out"},
+        "transition": {"duration": 30, "easing": "cubic-in-out"},
         "pad": {"b": 10, "t": 50},
         "len": 0.9,
         "x": 0.1,
@@ -224,14 +224,14 @@ server = app.server
 
 #available_indicators = df['Indicator Name'].unique()
 available_x_axis = [
-    'Confirmed',
-    'Confirmed/million',
+    'Deaths',
+    'Deaths / million',
     'Recovered',
 ]
 
 available_y_axis = [
-    'Deaths',
-    'Deaths/million',
+    'Confirmed',
+    'Confirmed / million',
     'Recovered',
 ]
 
@@ -240,20 +240,21 @@ available_z_axis = [
  'Population density /sq mi'
 ]
 
+app.title = 'Covid-19 Data Trends'
+
 app.layout = html.Div(
     [
         html.Div([
     
-            html.H1("Covid-19 Data Trends", style={'display': 'inline-block', 'margin':5}),
-            
+            html.H3("Covid-19 Data Trends", style={'display': 'inline-block', 'margin':5, 'font-family': 'Verdana'}),
+            html.A(html.Img(src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg",
+                    style={'display': 'inline-block', 'float': 'right', 'margin': 4, 'height': 43, 'width': 43}),
+                    href='https://www.linkedin.com/in/vishal-sh/'
+                ),
             dbc.Button(
                 "About", id="alert-toggle-fade", className="mr-1",
                 style={'display': 'inline-block', 'float': 'right', 'margin': 5}),
-            html.A(html.Button("LinkedIn", id="contact-me",
-                       style={'display': 'inline-block', 'float': 'right', 'margin': 5, 
-                              'background-color': '#1E90FF', 'color':'white'}),
-                       href='https://www.linkedin.com/in/vishal-sh/'
-                   ),
+
             dbc.Alert(
                 "Coronavirus turned the world upside down, caught nations off-guard. Our response has been difficult & inconsistent, hampered by a lack of data. As a data scientist I wanted to do my bit on this war on Covid-19, sharing insights and trends.",
                 id="alert-fade",
@@ -274,7 +275,7 @@ app.layout = html.Div(
             dcc.Dropdown(
                 id='x-axis-selection', #'crossfilter-xaxis-column',
                 options=[{'label': i, 'value': i} for i in available_x_axis],
-                value='Confirmed/million'
+                value=available_x_axis[1]
             ),
 
         ],
@@ -285,7 +286,7 @@ app.layout = html.Div(
             dcc.Dropdown(
                 id='y-axis-selection', #'crossfilter-xaxis-column',
                 options=[{'label': i, 'value': i} for i in available_y_axis],
-                value='Deaths/million'
+                value=available_y_axis[1]
             ),
         ], style={'width': '15%', 'display': 'inline-block', 'margin': 5}),
         
@@ -299,7 +300,7 @@ app.layout = html.Div(
         ], style={'width': '15%', 'display': 'inline-block', 'margin': 5}),
         
         html.Div([
-            html.Label(["Highlight country"]),
+            html.Label(["Watch"]),
             dcc.Dropdown(
                 id='country-selection', #'crossfilter-xaxis-column',
                 options=[{'label': i, 'value': i} for i in countries],
