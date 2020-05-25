@@ -14,7 +14,7 @@ dataset['index'] = dataset['index'].replace({'United Kingdom':'UK'})
 
 dataset=dataset[['index',
  #'Active',
- 'Confirmed',
+ 'Confirmed cases',
  'Deaths',
  #'FIPS',
  #'Lat',
@@ -26,7 +26,7 @@ dataset=dataset[['index',
  'Population(m)',
  'Population density /sq mi']].copy()
 
-dataset['Confirmed / million']=dataset['Confirmed']/dataset['Population(m)']
+dataset['Confirmed / million']=dataset['Confirmed cases']/dataset['Population(m)']
 dataset['Deaths / million']=dataset['Deaths']/dataset['Population(m)']
 
 #Function
@@ -230,7 +230,7 @@ available_x_axis = [
 ]
 
 available_y_axis = [
-    'Confirmed',
+    'Confirmed cases',
     'Confirmed / million',
     'Recovered',
 ]
